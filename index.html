@@ -5,182 +5,118 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deluxe 2-Octave Online Piano</title>
     <style>
+        :root {
+            --bg-color: #121212;
+            --container-bg: #050505;
+            --accent-color: #00e6ff;
+            --text-color: #ffffff;
+        }
+        .theme-light {
+            --bg-color: #f5f5f7;
+            --container-bg: #e5e5ea;
+            --accent-color: #007aff;
+            --text-color: #1c1c1e;
+        }
+        .theme-retro {
+            --bg-color: #2b1836;
+            --container-bg: #190a21;
+            --accent-color: #ff007f;
+            --text-color: #39ff14;
+        }
+
         body {
             margin: 0;
-            background: #121212;
+            background: var(--bg-color);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            color: #fff;
-            overflow-x: hidden;
+            color: var(--text-color);
         }
-        h1 { margin-bottom: 5px; color: #00e6ff; text-shadow: 0 0 10px rgba(0,230,255,0.3); }
-        .instructions { margin-bottom: 20px; color: #aaa; text-align: center; font-size: 14px; }
+        h1 { margin-bottom: 5px; color: var(--accent-color); }
+        .header-controls { display: flex; gap: 15px; margin-bottom: 25px; align-items: center; }
         
-        /* Control Panel Styles */
         .controls {
-            margin-bottom: 25px;
-            display: flex;
-            gap: 15px;
-            background: #222;
-            padding: 10px 20px;
-            border-radius: 30px;
-            border: 1px solid #333;
+            display: flex; gap: 10px; background: rgba(128,128,128,0.1);
+            padding: 8px 15px; border-radius: 30px; border: 1px solid rgba(128,128,128,0.2);
         }
-        .controls label { font-size: 14px; font-weight: bold; align-self: center; color: #00e6ff; }
-        .controls button {
-            background: #333;
-            color: #fff;
-            border: 1px solid #444;
-            padding: 6px 14px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
+        .controls button, .settings-link {
+            background: #333; color: #fff; border: 1px solid #444;
+            padding: 6px 14px; border-radius: 20px; cursor: pointer;
+            font-weight: bold; text-decoration: none; font-size: 13px;
         }
-        .controls button.active-synth {
-            background: #00e6ff;
-            color: #000;
-            border-color: #00e6ff;
-            box-shadow: 0 0 10px rgba(0,230,255,0.5);
-        }
-
-        /* Piano Keyboard Container */
-        .piano-container {
-            display: flex;
-            position: relative;
-            background: #050505;
-            padding: 30px 15px 15px 15px;
-            border-radius: 12px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
-            border: 2px solid #222;
-        }
-
-        /* Keys Base Styles */
-        .key {
-            cursor: pointer;
-            user-select: none;
-            position: relative;
-        }
+        .controls button.active-synth { background: var(--accent-color); color: #000; border-color: var(--accent-color); }
         
-        /* White Keys (15 keys total across 2 octaves) */
+        .piano-container {
+            display: flex; position: relative; background: var(--container-bg);
+            padding: 30px 15px 15px 15px; border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 2px solid rgba(128,128,128,0.2);
+        }
+        .key { cursor: pointer; user-select: none; position: relative; }
         .white-key {
-            width: 55px;
-            height: 240px;
-            background: linear-gradient(to bottom, #f0f0f0 0%, #ffffff 100%);
-            border: 1px solid #bbb;
-            border-radius: 0 0 6px 6px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: center;
-            padding-bottom: 15px;
-            color: #444;
-            font-weight: bold;
-            font-size: 12px;
-            transition: background 0.05s, transform 0.05s;
-            z-index: 1;
+            width: 55px; height: 240px; background: linear-gradient(to bottom, #f0f0f0 0%, #ffffff 100%);
+            border: 1px solid #bbb; border-radius: 0 0 6px 6px; box-sizing: border-box;
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+            padding-bottom: 15px; color: #444; font-weight: bold; font-size: 12px; z-index: 1;
         }
-        .white-key:active, .white-key.active {
-            background: #d4d4d4;
-            box-shadow: inset 0 8px 12px rgba(0,0,0,0.25);
-            transform: translateY(2px);
-        }
-
-        /* Black Keys (10 keys total, positioned relatively over white keys) */
+        .white-key:active, .white-key.active { background: #d4d4d4; transform: translateY(2px); }
         .black-key {
-            width: 34px;
-            height: 145px;
-            background: linear-gradient(to bottom, #111 0%, #2c2c2c 100%);
-            border: 1px solid #000;
-            border-radius: 0 0 4px 4px;
-            position: absolute;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: center;
-            padding-bottom: 10px;
-            color: #888;
-            font-size: 11px;
-            transition: background 0.05s, transform 0.05s;
-            box-shadow: 3px 5px 8px rgba(0,0,0,0.5);
+            width: 34px; height: 145px; background: linear-gradient(to bottom, #111 0%, #2c2c2c 100%);
+            border: 1px solid #000; border-radius: 0 0 4px 4px; position: absolute; z-index: 10;
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+            padding-bottom: 10px; color: #888; font-size: 11px; box-shadow: 3px 5px 8px rgba(0,0,0,0.4);
         }
-        .black-key:active, .black-key.active {
-            background: #444;
-            transform: translateY(1px);
-            box-shadow: 1px 2px 4px rgba(0,0,0,0.5);
-        }
+        .black-key:active, .black-key.active { background: #444; transform: translateY(1px); }
+        .hide-labels .key-label { display: none; }
     </style>
 </head>
 <body>
 
     <h1>Online Deluxe Piano</h1>
-    <div class="instructions">
-        Click notes or use your PC keyboard.<br>
-        <strong>Octave 1:</strong> Z X C V B N M , . / &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Octave 2:</strong> Q W E R T Y U I O P [
+    <div class="header-controls">
+        <div class="controls">
+            <button id="btn-triangle" class="active-synth" onclick="setWaveform('triangle')">Piano</button>
+            <button id="btn-sine" onclick="setWaveform('sine')">Sine</button>
+            <button id="btn-sawtooth" onclick="setWaveform('sawtooth')">Retro</button>
+        </div>
+        <a href="settings.html" class="settings-link">⚙️ Open Settings Page</a>
     </div>
 
-    <!-- Synth Type Customizer Controls -->
-    <div class="controls">
-        <label>SOUND TYPE:</label>
-        <button id="btn-triangle" class="active-synth" onclick="setWaveform('triangle')">Piano-Warm</button>
-        <button id="btn-sine" onclick="setWaveform('sine')">Pure-Sine</button>
-        <button id="btn-sawtooth" onclick="setWaveform('sawtooth')">Retro-8Bit</button>
-        <button id="btn-square" onclick="setWaveform('square')">Chiptune</button>
-    </div>
-
-    <!-- The 25-Key Custom Keybed Structure -->
+    <!-- The Piano Keybed Structure -->
     <div class="piano-container" id="keyboard">
-        <!-- OCTAVE 1 (C3 to B3) -->
-        <div class="white-key key" data-note="C3" data-key="z">Z<br>C3</div>
-        <div class="black-key key" data-note="C#3" data-key="s" style="left: 52px;">S<br>C#</div>
-        
-        <div class="white-key key" data-note="D3" data-key="x">X<br>D3</div>
-        <div class="black-key key" data-note="D#3" data-key="d" style="left: 107px;">D<br>D#</div>
-        
-        <div class="white-key key" data-note="E3" data-key="c">C<br>E3</div>
-        
-        <div class="white-key key" data-note="F3" data-key="v">V<br>F3</div>
-        <div class="black-key key" data-note="F#3" data-key="g" style="left: 217px;">G<br>F#</div>
-        
-        <div class="white-key key" data-note="G3" data-key="b">B<br>G3</div>
-        <div class="black-key key" data-note="G#3" data-key="h" style="left: 272px;">H<br>G#</div>
-        
-        <div class="white-key key" data-note="A3" data-key="n">N<br>A3</div>
-        <div class="black-key key" data-note="A#3" data-key="j" style="left: 327px;">J<br>A#</div>
-        
-        <div class="white-key key" data-note="B3" data-key="m">M<br>B3</div>
+        <!-- OCTAVE 1 -->
+        <div class="white-key key" data-note="C3" data-key="z"><span class="key-label">Z<br>C3</span></div>
+        <div class="black-key key" data-note="C#3" data-key="s" style="left: 52px;"><span class="key-label">S<br>C#</span></div>
+        <div class="white-key key" data-note="D3" data-key="x"><span class="key-label">X<br>D3</span></div>
+        <div class="black-key key" data-note="D#3" data-key="d" style="left: 107px;"><span class="key-label">D<br>D#</span></div>
+        <div class="white-key key" data-note="E3" data-key="c"><span class="key-label">C<br>E3</span></div>
+        <div class="white-key key" data-note="F3" data-key="v"><span class="key-label">V<br>F3</span></div>
+        <div class="black-key key" data-note="F#3" data-key="g" style="left: 217px;"><span class="key-label">G<br>F#</span></div>
+        <div class="white-key key" data-note="G3" data-key="b"><span class="key-label">B<br>G3</span></div>
+        <div class="black-key key" data-note="G#3" data-key="h" style="left: 272px;"><span class="key-label">H<br>G#</span></div>
+        <div class="white-key key" data-note="A3" data-key="n"><span class="key-label">N<br>A3</span></div>
+        <div class="black-key key" data-note="A#3" data-key="j" style="left: 327px;"><span class="key-label">J<br>A#</span></div>
+        <div class="white-key key" data-note="B3" data-key="m"><span class="key-label">M<br>B3</span></div>
 
-        <!-- OCTAVE 2 (C4 to C5) -->
-        <div class="white-key key" data-note="C4" data-key="q">Q<br>C4</div>
-        <div class="black-key key" data-note="C#4" data-key="2" style="left: 492px;">2<br>C#</div>
-        
-        <div class="white-key key" data-note="D4" data-key="w">W<br>D4</div>
-        <div class="black-key key" data-note="D#4" data-key="3" style="left: 547px;">3<br>D#</div>
-        
-        <div class="white-key key" data-note="E4" data-key="e">E<br>E4</div>
-        
-        <div class="white-key key" data-note="F4" data-key="r">R<br>F4</div>
-        <div class="black-key key" data-note="F#4" data-key="5" style="left: 657px;">5<br>F#</div>
-        
-        <div class="white-key key" data-note="G4" data-key="t">T<br>G4</div>
-        <div class="black-key key" data-note="G#4" data-key="6" style="left: 712px;">6<br>G#</div>
-        
-        <div class="white-key key" data-note="A4" data-key="y">Y<br>A4</div>
-        <div class="black-key key" data-note="A#4" data-key="7" style="left: 767px;">7<br>A#</div>
-        
-        <div class="white-key key" data-note="B4" data-key="u">U<br>B4</div>
-        
-        <div class="white-key key" data-note="C5" data-key="i">I<br>C5</div>
+        <!-- OCTAVE 2 -->
+        <div class="white-key key" data-note="C4" data-key="q"><span class="key-label">Q<br>C4</span></div>
+        <div class="black-key key" data-note="C#4" data-key="2" style="left: 492px;"><span class="key-label">2<br>C#</span></div>
+        <div class="white-key key" data-note="D4" data-key="w"><span class="key-label">W<br>D4</span></div>
+        <div class="black-key key" data-note="D#4" data-key="3" style="left: 547px;"><span class="key-label">3<br>D#</span></div>
+        <div class="white-key key" data-note="E4" data-key="e"><span class="key-label">E<br>E4</span></div>
+        <div class="white-key key" data-note="F4" data-key="r"><span class="key-label">R<br>F4</span></div>
+        <div class="black-key key" data-note="F#4" data-key="5" style="left: 657px;"><span class="key-label">5<br>F#</span></div>
+        <div class="white-key key" data-note="G4" data-key="t"><span class="key-label">T<br>G4</span></div>
+        <div class="black-key key" data-note="G#4" data-key="6" style="left: 712px;"><span class="key-label">6<br>G#</span></div>
+        <div class="white-key key" data-note="A4" data-key="y"><span class="key-label">Y<br>A4</span></div>
+        <div class="black-key key" data-note="A#4" data-key="7" style="left: 767px;"><span class="key-label">7<br>A#</span></div>
+        <div class="white-key key" data-note="B4" data-key="u"><span class="key-label">U<br>B4</span></div>
+        <div class="white-key key" data-note="C5" data-key="i"><span class="key-label">I<br>C5</span></div>
     </div>
 
     <script>
-        // Exact frequencies across 25 sequential keys
         const noteFrequencies = {
             "C3": 130.81, "C#3": 138.59, "D3": 146.83, "D#3": 155.56, "E3": 164.81, "F3": 174.61, "F#3": 185.00, "G3": 196.00, "G#3": 207.65, "A3": 220.00, "A#3": 233.08, "B3": 246.94,
             "C4": 261.63, "C#4": 277.18, "D4": 293.66, "D#4": 311.13, "E4": 329.63, "F4": 349.23, "F#4": 369.99, "G4": 392.00, "G#4": 415.30, "A4": 440.00, "A#4": 466.16, "B4": 493.88, "C5": 523.25
@@ -188,15 +124,30 @@
 
         const activeOscillators = {};
         let audioCtx = null;
-        let currentWaveform = 'triangle'; // Default setting
+        let currentWaveform = 'triangle';
+        let globalVolume = 0.3;
+
+        // Fetch cross-page state on initiation mount
+        window.addEventListener('DOMContentLoaded', () => {
+            // Apply Master Volume Setup
+            if(localStorage.getItem('pianoVolume')) {
+                globalVolume = parseFloat(localStorage.getItem('pianoVolume'));
+            }
+            // Apply Visual Style profile
+            if(localStorage.getItem('pianoTheme')) {
+                const activeTheme = localStorage.getItem('pianoTheme');
+                if (activeTheme !== 'dark') document.body.classList.add(`theme-${activeTheme}`);
+            }
+            // Apply UI label tags configuration
+            if(localStorage.getItem('pianoLabels') === 'hide') {
+                document.getElementById('keyboard').classList.add('hide-labels');
+            }
+        });
 
         function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
+            if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
         }
 
-        // Change synthesizer engine settings on click
         function setWaveform(type) {
             currentWaveform = type;
             document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active-synth'));
@@ -213,8 +164,7 @@
             osc.type = currentWaveform;
             osc.frequency.setValueAtTime(noteFrequencies[note], audioCtx.currentTime);
 
-            // Audio gain staging setup
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime); 
+            gainNode.gain.setValueAtTime(globalVolume, audioCtx.currentTime); 
             gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.8); 
 
             osc.connect(gainNode);
@@ -230,20 +180,26 @@
                 try {
                     gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
                     gainNode.gain.setValueAtTime(gainNode.gain.value, audioCtx.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15); // Smooth release
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
                     setTimeout(() => osc.stop(), 150);
                 } catch(e) {}
-                delete activeOscillators[note];
-            }
-        }
-
-        // Mouse Events
-        document.querySelectorAll('.key').forEach(keyElement => {
-            const note = keyElement.dataset.note;
-            
-            keyElement.addEventListener('mousedown', () => {
-                playNote(note);
-                keyElement.classList.add('active');
-            });
-            
-            keyElement.addEventListener('mouseup', () => {
+Use code with caution.
+delete activeOscillators[note];
+}
+}
+// --- Action Handlers (Mouse & Computer Keyboard mappings) ---
+document.querySelectorAll('.key').forEach(keyElement => {
+const note = keyElement.dataset.note;
+keyElement.addEventListener('mousedown', () => { playNote(note); keyElement.classList.add('active'); });
+keyElement.addEventListener('mouseup', () => { stopNote(note); keyElement.classList.remove('active'); });
+keyElement.addEventListener('mouseleave', () => { stopNote(note); keyElement.classList.remove('active'); });
+});
+window.addEventListener('keydown', (e) => {
+if (e.repeat) return;
+const keyElement = document.querySelector([data-key="${e.key.toLowerCase()}"]);
+if (keyElement) { playNote(keyElement.dataset.note); keyElement.classList.add('active'); }
+});
+window.addEventListener('keyup', (e) => {
+const keyElement = document.querySelector([data-key="${e.key.toLowerCase()}"]);
+if (keyElement) { stopNote(keyElement.dataset.note); keyElement.classList.remove('active'); }
+});
