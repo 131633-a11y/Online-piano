@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Browser Piano</title>
+    <style>
+        body {
+            margin: 0;
+            background: #1a1a1a;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: #fff;
+        }
+        h1 { margin-bottom: 20px; }
+        .instructions { margin-bottom: 30px; color: #aaa; text-align: center; }
+        
+        /* Piano Keyboard Container */
+        .piano-container {
+            display: flex;
+            position: relative;
+            background: #000;
+            padding: 20px 10px 10px 10px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* White Keys styling */
+        .key {
+            cursor: pointer;
+            user-select: none;
+        }
+        .white-key {
+            width: 60px;
+            height: 240px;
+            background: linear-gradient(to bottom, #eeeeee 0%, #ffffff 100%);
+            border: 1px solid #ccc;
+            border-radius: 0 0 5px 5px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 15px;
+            color: #555;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background 0.1s;
+        }
+        .white-key:active, .white-key.active {
+            background: #e0e0e0;
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Black Keys positioning & styling */
+        .black-key {
+            width: 36px;
+            height: 150px;
+            background: linear-gradient(to bottom, #111 0%, #333 100%);
+            border: 1px solid #000;
+            border-radius: 0 0 3px 3px;
+            position: absolute;
+            z-index: 10;
+            margin-left: -18px; /* Center shift over the white key boundary */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 10px;
+            color: #fff;
+            font-size: 12px;
+            transition: background 0.1s;
+        }
+        .black-key:active, .black-key.active {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Online Web Piano</h1>
+    <div class="instructions">Click the keys or use your computer keyboard: <strong>A S D F G H J K</strong></div>
+
+    <!-- The 1-Octave Keybed Structure -->
+    <div class="piano-container" id="keyboard">
+        <div class="white-key key" data-note="C4" data-key="a">A<br>C4</div>
+        <div class="black-key key" data-note="C#4" data-key="w" style="left: 70px;">W<br>C#</div>
+        
+        <div class="white-key key" data-note="D4" data-key="s">S<br>D4</div>
+        <div class="black-key key" data-note="D#4" data-key="e" style="left: 130px;">E<br>D#</div>
+        
+        <div class="white-key key" data-note="E4" data-key="d">D<br>E4</div>
+        
+        <div class="white-key key" data-note="F4" data-key="f">F<br>F4</div>
+        <div class="black-key key" data-note="F#4" data-key="t" style="left: 250px;">T<br>F#</div>
+        
+        <div class="white-key key" data-note="G4" data-key="g">G<br>G4</div>
+        <div class="black-key key" data-note="G#4" data-key="y" style="left: 310px;">Y<br>G#</div>
+        
+        <div class="white-key key" data-note="A4" data-key="h">H<br>A4</div>
+        <div class="black-key key" data-note="A#4" data-key="u" style="left: 370px;">U<br>A#</div>
+        
+        <div class="white-key key" data-note="B4" data-key="j">J<br>B4</div>
+        <div class="white-key key" data-note="C5" data-key="k">K<br>C5</div>
+    </div>
+
+    <script>
+        // Mapping notes to standard frequencies (Hz)
+        const noteFrequencies = {
+            "C4": 261.63, "C#4": 277.18, "D4": 293.66, "D#4": 311.13,
+            "E4": 329.63, "F4": 349.23, "F#4": 369.99, "G4": 392.00,
+            "G#4": 415.30, "A4": 440.00, "A#4": 466.16, "B4": 493.88, "C5": 523.25
+        };
+
+        // Track active oscillators so multiple keys can be pressed concurrently
+        const activeOscillators = {};
+        let audioCtx = null;
+
+        // Initialise AudioContext on the first interaction due to browser security restrictions
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playNote(note) {
+            initAudio();
+            if (activeOscillators[note]) return; // Stop note duplicating if held down
+
+            // 1. Create Synthesizer Modules
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            // 2. Configure Sound Attributes
+            osc.type = 'triangle'; // Warm, flute/piano-like waveform texture
+            osc.frequency.setValueAtTime(noteFrequencies[note], audioCtx.currentTime);
+
+            // 3. Simple Volume Envelope (Prevents clicking sounds)
+            gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime); 
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5); // Smooth natural decay
+
+            // 4. Connect and Play
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+
+            // Save instance to stop it cleanly later
+            activeOscillators[note] = { osc, gainNode };
+        }
+
+        function stopNote(note) {
+            if (activeOscillators[note]) {
+                const { osc, gainNode } = activeOscillators[note];
+                try {
+                    // Fast release instead of abrupt cut-off
+                    gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(gainNode.gain.value, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                    setTimeout(() => osc.stop(), 100);
+                } catch(e) {}
+                delete activeOscillators[note];
+            }
+        }
+
+        // --- Event Listeners for Mouse/Touch Elements ---
+        document.querySelectorAll('.key').forEach(keyElement => {
+            const note = keyElement.dataset.note;
+            
+            keyElement.addEventListener('mousedown', () => {
+                playNote(note);
+                keyElement.classList.add('active');
+            });
+            
+            keyElement.addEventListener('mouseup', () => {
+                stopNote(note);
+                keyElement.classList.remove('active');
+            });
+
+            keyElement.addEventListener('mouseleave', () => {
+                stopNote(note);
+                keyElement.classList.remove('active');
+            });
+        });
+
+        // --- Event Listeners for Computer Keyboard Mapping ---
+        window.addEventListener('keydown', (e) => {
+            if (e.repeat) return; // Ignore native key-repeat lag
+            const keyStr = e.key.toLowerCase();
+            const keyElement = document.querySelector(`[data-key="${keyStr}"]`);
+            if (keyElement) {
+                playNote(keyElement.dataset.note);
+                keyElement.classList.add('active');
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const keyStr = e.key.toLowerCase();
+            const keyElement = document.querySelector(`[data-key="${keyStr}"]`);
+            if (keyElement) {
+                stopNote(keyElement.dataset.note);
+                keyElement.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
