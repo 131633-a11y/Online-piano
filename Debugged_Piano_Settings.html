@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deluxe 2-Octave Online Piano</title>
+    <style>
+        :root { --bg: #121212; --panel: #222; --text: #fff; --accent: #00e6ff; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; min-height: 100vh; padding: 24px 12px;
+            background: var(--bg); color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow-x: hidden;
+        }
+        h1 { margin: 0 0 8px; color: var(--accent); text-shadow: 0 0 10px rgba(0,230,255,.3); text-align: center; }
+        .instructions { margin-bottom: 20px; color: #aaa; text-align: center; font-size: 14px; line-height: 1.5; }
+        .controls {
+            margin-bottom: 25px; display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 10px; background: var(--panel); padding: 10px 14px; border-radius: 22px; border: 1px solid #333;
+        }
+        .controls label { font-size: 14px; font-weight: bold; align-self: center; color: var(--accent); }
+        .controls button {
+            background: #333; color: #fff; border: 1px solid #444; padding: 7px 12px;
+            border-radius: 20px; cursor: pointer; font-weight: bold; transition: all .2s;
+        }
+        .controls button.active-synth { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 0 10px rgba(0,230,255,.35); }
+        .piano-container {
+            display: flex; position: relative; background: #050505; padding: 30px 15px 15px;
+            border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,.7); border: 2px solid #222;
+            max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain;
+        }
+        .key { cursor: pointer; user-select: none; -webkit-user-select: none; position: relative; flex-shrink: 0; touch-action: none; }
+        .white-key {
+            width: 55px; height: 240px; background: linear-gradient(to bottom, #f0f0f0, #fff);
+            border: 1px solid #bbb; border-radius: 0 0 6px 6px;
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+            padding-bottom: 15px; color: #444; font-weight: bold; font-size: 12px; z-index: 1;
+            transition: background .05s, transform .05s;
+        }
+        .white-key:active, .white-key.active { background: #d4d4d4; box-shadow: inset 0 8px 12px rgba(0,0,0,.25); transform: translateY(2px); }
+        .black-key {
+            width: 34px; height: 145px; background: linear-gradient(to bottom, #111, #2c2c2c);
+            border: 1px solid #000; border-radius: 0 0 4px 4px; position: absolute; z-index: 10;
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+            padding-bottom: 10px; color: #888; font-size: 11px; box-shadow: 3px 5px 8px rgba(0,0,0,.5);
+            transition: background .05s, transform .05s;
+        }
+        .black-key:active, .black-key.active { background: #444; transform: translateY(1px); }
+        @media (max-width: 700px) {
+            h1 { font-size: 1.5rem; }
+            .white-key { width: 44px; height: 200px; }
+            .black-key { width: 28px; height: 120px; }
+            .instructions { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Online Deluxe Piano</h1>
+    <div class="instructions">
+        Click notes or use your PC keyboard.<br>
+        <strong>Octave 1:</strong> Z X C V B N M &nbsp; | &nbsp; <strong>Octave 2:</strong> Q W E R T Y U I
+        <br>Black keys: S D G H J (octave 1), 2 3 5 6 7 (octave 2)
+    </div>
+    <div class="controls" aria-label="Sound type controls">
+        <label>SOUND TYPE:</label>
+        <button id="btn-triangle" class="active-synth" type="button" onclick="setWaveform('triangle')">Piano-Warm</button>
+        <button id="btn-sine" type="button" onclick="setWaveform('sine')">Pure-Sine</button>
+        <button id="btn-sawtooth" type="button" onclick="setWaveform('sawtooth')">Retro-8Bit</button>
+        <button id="btn-square" type="button" onclick="setWaveform('square')">Chiptune</button>
+    </div>
+
+    <div class="piano-container" id="keyboard" aria-label="Piano keyboard">
+        <div class="white-key key" data-note="C3" data-key="z">Z<br>C3</div>
+        <div class="black-key key" data-note="C#3" data-key="s" style="left: 52px;">S<br>C#</div>
+        <div class="white-key key" data-note="D3" data-key="x">X<br>D3</div>
+        <div class="black-key key" data-note="D#3" data-key="d" style="left: 107px;">D<br>D#</div>
+        <div class="white-key key" data-note="E3" data-key="c">C<br>E3</div>
+        <div class="white-key key" data-note="F3" data-key="v">V<br>F3</div>
+        <div class="black-key key" data-note="F#3" data-key="g" style="left: 217px;">G<br>F#</div>
+        <div class="white-key key" data-note="G3" data-key="b">B<br>G3</div>
+        <div class="black-key key" data-note="G#3" data-key="h" style="left: 272px;">H<br>G#</div>
+        <div class="white-key key" data-note="A3" data-key="n">N<br>A3</div>
+        <div class="black-key key" data-note="A#3" data-key="j" style="left: 327px;">J<br>A#</div>
+        <div class="white-key key" data-note="B3" data-key="m">M<br>B3</div>
+        <div class="white-key key" data-note="C4" data-key="q">Q<br>C4</div>
+        <div class="black-key key" data-note="C#4" data-key="2" style="left: 492px;">2<br>C#</div>
+        <div class="white-key key" data-note="D4" data-key="w">W<br>D4</div>
+        <div class="black-key key" data-note="D#4" data-key="3" style="left: 547px;">3<br>D#</div>
+        <div class="white-key key" data-note="E4" data-key="e">E<br>E4</div>
+        <div class="white-key key" data-note="F4" data-key="r">R<br>F4</div>
+        <div class="black-key key" data-note="F#4" data-key="5" style="left: 657px;">5<br>F#</div>
+        <div class="white-key key" data-note="G4" data-key="t">T<br>G4</div>
+        <div class="black-key key" data-note="G#4" data-key="6" style="left: 712px;">6<br>G#</div>
+        <div class="white-key key" data-note="A4" data-key="y">Y<br>A4</div>
+        <div class="black-key key" data-note="A#4" data-key="7" style="left: 767px;">7<br>A#</div>
+        <div class="white-key key" data-note="B4" data-key="u">U<br>B4</div>
+        <div class="white-key key" data-note="C5" data-key="i">I<br>C5</div>
+    </div>
+
+    <script>
+        const noteFrequencies = {
+            "C3":130.81, "C#3":138.59, "D3":146.83, "D#3":155.56, "E3":164.81,
+            "F3":174.61, "F#3":185.00, "G3":196.00, "G#3":207.65, "A3":220.00,
+            "A#3":233.08, "B3":246.94, "C4":261.63, "C#4":277.18, "D4":293.66,
+            "D#4":311.13, "E4":329.63, "F4":349.23, "F#4":369.99, "G4":392.00,
+            "G#4":415.30, "A4":440.00, "A#4":466.16, "B4":493.88, "C5":523.25
+        };
+
+        const activeOscillators = Object.create(null);
+        const heldKeyboardNotes = new Set();
+        let audioCtx = null;
+        let currentWaveform = "triangle";
+        let masterVolume = 0.3;
+
+        function initAudio() {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) {
+                alert("This browser does not support audio playback.");
+                return false;
+            }
+            if (!audioCtx) audioCtx = new AudioContextClass();
+            if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+            return true;
+        }
+
+        function setWaveform(type) {
+            if (!["triangle", "sine", "sawtooth", "square"].includes(type)) return;
+            currentWaveform = type;
+            document.querySelectorAll(".controls button").forEach(button => button.classList.remove("active-synth"));
+            document.getElementById(`btn-${type}`)?.classList.add("active-synth");
+        }
+
+        function playNote(note) {
+            if (!noteFrequencies[note] || !initAudio() || activeOscillators[note]) return;
+
+            const oscillator = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const now = audioCtx.currentTime;
+
+            oscillator.type = currentWaveform;
+            oscillator.frequency.setValueAtTime(noteFrequencies[note], now);
+            gain.gain.setValueAtTime(Math.max(0.0001, masterVolume), now);
+            oscillator.connect(gain);
+            gain.connect(audioCtx.destination);
+            oscillator.start();
+
+            activeOscillators[note] = { oscillator, gain };
+        }
+
+        function stopNote(note) {
+            const voice = activeOscillators[note];
+            if (!voice || !audioCtx) return;
+            delete activeOscillators[note];
+
+            const now = audioCtx.currentTime;
+            try {
+                voice.gain.gain.cancelScheduledValues(now);
+                voice.gain.gain.setValueAtTime(Math.max(0.0001, voice.gain.gain.value), now);
+                voice.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+                voice.oscillator.stop(now + 0.13);
+                voice.oscillator.onended = () => {
+                    voice.oscillator.disconnect();
+                    voice.gain.disconnect();
+                };
+            } catch (error) {
+                try { voice.oscillator.stop(); } catch (_) {}
+            }
+        }
+
+        const keyElements = [...document.querySelectorAll(".key")];
+        function keyFromKeyboardEvent(event) {
+            const pressed = event.key.toLowerCase();
+            return keyElements.find(element => element.dataset.key.toLowerCase() === pressed);
+        }
+
+        function releaseElement(element) {
+            if (!element) return;
+            stopNote(element.dataset.note);
+            element.classList.remove("active");
+        }
+
+        keyElements.forEach(element => {
+            element.addEventListener("pointerdown", event => {
+                event.preventDefault();
+                try { element.setPointerCapture(event.pointerId); } catch (_) {}
+                playNote(element.dataset.note);
+                element.classList.add("active");
+            });
+            ["pointerup", "pointercancel", "lostpointercapture"].forEach(type => {
+                element.addEventListener(type, () => releaseElement(element));
+            });
+            element.addEventListener("contextmenu", event => event.preventDefault());
+        });
+
+        window.addEventListener("keydown", event => {
+            if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
+            const element = keyFromKeyboardEvent(event);
+            if (!element) return;
+            event.preventDefault();
+            const note = element.dataset.note;
+            if (heldKeyboardNotes.has(note)) return;
+            heldKeyboardNotes.add(note);
+            playNote(note);
+            element.classList.add("active");
+        });
+
+        window.addEventListener("keyup", event => {
+            const element = keyFromKeyboardEvent(event);
+            if (!element) return;
+            const note = element.dataset.note;
+            heldKeyboardNotes.delete(note);
+            stopNote(note);
+            element.classList.remove("active");
+        });
+
+        window.addEventListener("blur", () => {
+            heldKeyboardNotes.clear();
+            keyElements.forEach(releaseElement);
+            Object.keys(activeOscillators).forEach(stopNote);
+        });
+    </script>
+</body>
+</html>
